@@ -19,8 +19,13 @@ const Box = ({ id, x, y, moveBox, removeBox, boxWidth, boxHeight }) => {
   }), [id, x, y, moveBox]);
 
   return (
-    <div ref={drag} onClick={() => removeBox(id)} style={{ position: 'absolute', left: x, top: y, width: `${boxWidth}px`, height: `${boxHeight}px`, backgroundColor: 'blue', cursor: 'move', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      Box {id}
+    <div ref={drag} style={{ position: 'absolute', left: x, top: y, width: `${boxWidth}px`, height: `${boxHeight}px`, backgroundColor: 'blue', cursor: 'move', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ flexGrow: 1 }}>
+        Box {id}
+      </div>
+      <button onClick={() => removeBox(id)} style={{ height: '20%', backgroundColor: 'red', color: 'white' }}>
+        Remove
+      </button>
     </div>
   );
 };

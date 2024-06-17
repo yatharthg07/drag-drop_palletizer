@@ -37,10 +37,15 @@ function App() {
   };
 
   const submitBoxes = () => {
-    console.log("Coordinates of Boxes in meters:");
+    console.log("Coordinates of Box Centers in meters:");
     boxes.forEach(box => {
-      console.log(`Box ${box.id}: (${(box.x / scaleFactor).toFixed(2)}, ${(box.y / scaleFactor).toFixed(2)}) meters`);
+      console.log(`Box ${box.id}: (${((box.x + boxWidth * scaleFactor / 2) / scaleFactor).toFixed(2)}, ${((box.y + boxHeight * scaleFactor / 2) / scaleFactor).toFixed(2)}) meters`);
     });
+  };
+
+  const handleDimensionChange = (setter) => (e) => {
+    const value = e.target.value.replace(/^0+/, '') || '0';
+    setter(Number(value));
   };
 
   return (
@@ -49,24 +54,24 @@ function App() {
         <div className="settings">
           <label>
             Grid Width (m):
-            <input type="number" value={gridWidth} onChange={(e) => setGridWidth(Number(e.target.value))} />
+            <input type="number" value={gridWidth} onChange={handleDimensionChange(setGridWidth)} min="1" />
           </label>
           <label>
             Grid Height (m):
-            <input type="number" value={gridHeight} onChange={(e) => setGridHeight(Number(e.target.value))} />
+            <input type="number" value={gridHeight} onChange={handleDimensionChange(setGridHeight)} min="1" />
           </label>
           <label>
             Box Width (m):
-            <input type="number" value={boxWidth} onChange={(e) => setBoxWidth(Number(e.target.value))} />
+            <input type="number" value={boxWidth} onChange={handleDimensionChange(setBoxWidth)} min="0.1" />
           </label>
           <label>
             Box Height (m):
-            <input type="number" value={boxHeight} onChange={(e) => setBoxHeight(Number(e.target.value))} />
+            <input type="number" value={boxHeight} onChange={handleDimensionChange(setBoxHeight)} min="0.1" />
           </label>
           <button onClick={addBox}>Add Box</button>
           <button onClick={submitBoxes}>Submit</button>
         </div>
-        <BoxGrid boxes={boxes} boxWidth={boxWidth * scaleFactor} boxHeight={boxHeight * scaleFactor} gridWidth={gridWidth * scaleFactor} gridHeight={gridHeight * scaleFactor} moveBox={moveBox} removeBox={removeBox} />
+        <BoxGrid boxes={boxes} boxWidth={boxWidth * scaleFactor} boxHeight={boxHeight * scaleFactor} gridSize={gridWidth * scaleFactor} moveBox={moveBox} removeBox={removeBox} />
       </div>
     </DndProvider>
   );

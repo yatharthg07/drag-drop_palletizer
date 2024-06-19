@@ -6,10 +6,10 @@ import './App.css';
 
 function App() {
   const [boxes, setBoxes] = useState([]);
-  const [gridWidth, setGridWidth] = useState(5); // Default 5 meters
-  const [gridHeight, setGridHeight] = useState(5); // Default 5 meters
-  const [boxWidth, setBoxWidth] = useState(1); // Default 1 meter
-  const [boxHeight, setBoxHeight] = useState(1); // Default 1 meter
+  const [gridWidth, setGridWidth] = useState("5"); // Store as string to manage empty input
+  const [gridHeight, setGridHeight] = useState("5"); // Store as string to manage empty input
+  const [boxWidth, setBoxWidth] = useState("1"); // Store as string to manage empty input
+  const [boxHeight, setBoxHeight] = useState("1"); // Store as string to manage empty input
 
   const scaleFactor = 100; // 1 meter = 100 pixels
 
@@ -19,8 +19,8 @@ function App() {
   };
 
   const moveBox = (id, x, y) => {
-    const maxX = gridWidth * scaleFactor - boxWidth * scaleFactor;
-    const maxY = gridHeight * scaleFactor - boxHeight * scaleFactor;
+    const maxX = Number(gridWidth) * scaleFactor - Number(boxWidth) * scaleFactor;
+    const maxY = Number(gridHeight) * scaleFactor - Number(boxHeight) * scaleFactor;
     const newX = Math.max(0, Math.min(maxX, x));
     const newY = Math.max(0, Math.min(maxY, y));
     const newBoxes = boxes.map(box => {
@@ -39,13 +39,13 @@ function App() {
   const submitBoxes = () => {
     console.log("Coordinates of Box Centers in meters:");
     boxes.forEach(box => {
-      console.log(`Box ${box.id}: (${((box.x + boxWidth * scaleFactor / 2) / scaleFactor).toFixed(2)}, ${((box.y + boxHeight * scaleFactor / 2) / scaleFactor).toFixed(2)}) meters`);
+      console.log(`Box ${box.id}: (${((box.x + Number(boxWidth) * scaleFactor / 2) / scaleFactor).toFixed(2)}, ${((box.y + Number(boxHeight) * scaleFactor / 2) / scaleFactor).toFixed(2)}) meters`);
     });
   };
 
   const handleDimensionChange = (setter) => (e) => {
-    const value = e.target.value.replace(/^0+/, '') || '0';
-    setter(Number(value));
+    const value = e.target.value.replace(/^0+/, '') || ''; // Allows empty string
+    setter(value);
   };
 
   return (
@@ -54,24 +54,24 @@ function App() {
         <div className="settings">
           <label>
             Grid Width (m):
-            <input type="number" value={gridWidth} onChange={handleDimensionChange(setGridWidth)} min="1" />
+            <input type="number" value={gridWidth} onChange={handleDimensionChange(setGridWidth)} />
           </label>
           <label>
             Grid Height (m):
-            <input type="number" value={gridHeight} onChange={handleDimensionChange(setGridHeight)} min="1" />
+            <input type="number" value={gridHeight} onChange={handleDimensionChange(setGridHeight)} />
           </label>
           <label>
             Box Width (m):
-            <input type="number" value={boxWidth} onChange={handleDimensionChange(setBoxWidth)} min="0.1" />
+            <input type="number" value={boxWidth} onChange={handleDimensionChange(setBoxWidth)} />
           </label>
           <label>
             Box Height (m):
-            <input type="number" value={boxHeight} onChange={handleDimensionChange(setBoxHeight)} min="0.1" />
+            <input type="number" value={boxHeight} onChange={handleDimensionChange(setBoxHeight)} />
           </label>
           <button onClick={addBox}>Add Box</button>
           <button onClick={submitBoxes}>Submit</button>
         </div>
-        <BoxGrid boxes={boxes} boxWidth={boxWidth * scaleFactor} boxHeight={boxHeight * scaleFactor} gridSize={gridWidth * scaleFactor} moveBox={moveBox} removeBox={removeBox} />
+        <BoxGrid boxes={boxes} boxWidth={boxWidth * scaleFactor} boxHeight={boxHeight * scaleFactor} gridWidth={gridWidth * scaleFactor} gridHeight={gridHeight * scaleFactor} moveBox={moveBox} removeBox={removeBox} />
       </div>
     </DndProvider>
   );

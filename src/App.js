@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import BoxGrid from './components/BoxGrid';
@@ -10,26 +10,53 @@ function App() {
   const [gridHeight, setGridHeight] = useState("5"); // Store as string to manage empty input
   const [boxWidth, setBoxWidth] = useState("1"); // Store as string to manage empty input
   const [boxHeight, setBoxHeight] = useState("1"); // Store as string to manage empty input
+  const [scaleFactorWidth, setScaleFactorWidth] = useState(100); // Scale factor for width
+  const [scaleFactorHeight, setScaleFactorHeight] = useState(100); // Scale factor for height
 
-  const scaleFactor = 100; // 1 meter = 100 pixels
+  useEffect(() => {
+    const widthScale = 500 / (gridWidth * 100);
+    const heightScale = 500 / (gridHeight * 100);
+    setScaleFactorWidth(widthScale * 100);
+    setScaleFactorHeight(heightScale * 100);
+  }, [gridWidth, gridHeight]);
+
+  useEffect(() => {
+    // Update all boxes with the new dimensions
+    const updatedBoxes = boxes.map(box => ({
+      ...box,
+      width: Number(boxWidth),
+      height: Number(boxHeight)
+    }));
+    setBoxes(updatedBoxes);
+  }, [boxWidth, boxHeight]);
 
   const addBox = () => {
-    const newBox = { id: boxes.length, x: 10, y: 10 }; // Starting position
+    const newBox = { id: boxes.length, x: 10, y: 10, width: Number(boxWidth), height: Number(boxHeight) };
     setBoxes([...boxes, newBox]);
   };
 
   const moveBox = (id, x, y) => {
-    const maxX = Number(gridWidth) * scaleFactor - Number(boxWidth) * scaleFactor;
-    const maxY = Number(gridHeight) * scaleFactor - Number(boxHeight) * scaleFactor;
+    const box = boxes.find(box => box.id === id);
+    const maxX = Number(gridWidth) * scaleFactorWidth - box.width * scaleFactorWidth;
+    const maxY = Number(gridHeight) * scaleFactorHeight - box.height * scaleFactorHeight;
     const newX = Math.max(0, Math.min(maxX, x));
     const newY = Math.max(0, Math.min(maxY, y));
-    const newBoxes = boxes.map(box => {
+    setBoxes(boxes.map(box => {
       if (box.id === id) {
         return { ...box, x: newX, y: newY };
       }
       return box;
-    });
-    setBoxes(newBoxes);
+    }));
+  };
+
+  const rotateBox = (id) => {
+    setBoxes(boxes.map(box => {
+      if (box.id === id) {
+        return { ...box, width: box.height, height: box.width };
+      }
+      return box;
+    }));
+    console.log(boxes);
   };
 
   const removeBox = id => {
@@ -39,7 +66,7 @@ function App() {
   const submitBoxes = () => {
     console.log("Coordinates of Box Centers in meters:");
     boxes.forEach(box => {
-      console.log(`Box ${box.id}: (${((box.x + Number(boxWidth) * scaleFactor / 2) / scaleFactor).toFixed(2)}, ${((box.y + Number(boxHeight) * scaleFactor / 2) / scaleFactor).toFixed(2)}) meters`);
+      console.log(`Box ${box.id}: (${((box.x + box.width * scaleFactorWidth / 2) / scaleFactorWidth).toFixed(2)}, ${((box.y + box.height * scaleFactorHeight / 2) / scaleFactorHeight).toFixed(2)}) meters`);
     });
   };
 
@@ -71,10 +98,20 @@ function App() {
           <button onClick={addBox}>Add Box</button>
           <button onClick={submitBoxes}>Submit</button>
         </div>
-        <BoxGrid boxes={boxes} boxWidth={boxWidth * scaleFactor} boxHeight={boxHeight * scaleFactor} gridWidth={gridWidth * scaleFactor} gridHeight={gridHeight * scaleFactor} moveBox={moveBox} removeBox={removeBox} />
+        <BoxGrid
+          boxes={boxes}
+          scaleFactorHeight={scaleFactorHeight}
+          scaleFactorWidth={scaleFactorWidth}
+          gridWidth={500}
+          gridHeight={500}
+          moveBox={moveBox}
+          rotateBox={rotateBox}
+          removeBox={removeBox}
+        />
       </div>
     </DndProvider>
   );
+  
 }
 
 export default App;

@@ -31,28 +31,54 @@ function App() {
   }, [boxWidth, boxHeight]);
 
   const addBox = () => {
-    const newBox = { id: boxes.length, x: 10, y: 10, width: Number(boxWidth), height: Number(boxHeight) };
+    const newBox = { id: boxes.length, x: 10, y: 10, width: Number(boxWidth), height: Number(boxHeight),rotate:false };
     setBoxes([...boxes, newBox]);
   };
 
-  const moveBox = (id, x, y) => {
-    const box = boxes.find(box => box.id === id);
-    const maxX = Number(gridWidth) * scaleFactorWidth - box.width * scaleFactorWidth;
-    const maxY = Number(gridHeight) * scaleFactorHeight - box.height * scaleFactorHeight;
-    const newX = Math.max(0, Math.min(maxX, x));
-    const newY = Math.max(0, Math.min(maxY, y));
-    setBoxes(boxes.map(box => {
-      if (box.id === id) {
-        return { ...box, x: newX, y: newY };
-      }
-      return box;
-    }));
+  const boxesOverlap = (box1, box2) => {
+    return (
+      box1.x < box2.x + box2.width &&
+      box1.x + box1.width > box2.x &&
+      box1.y < box2.y + box2.height &&
+      box1.y + box1.height > box2.y
+    );
   };
+  const moveBox = (id, x, y) => {
+    const movingBox = boxes.find(box => box.id === id);
+    const newX = Math.max(0, Math.min(Number(gridWidth) * scaleFactorWidth - movingBox.width * scaleFactorWidth, x));
+    const newY = Math.max(0, Math.min(Number(gridHeight) * scaleFactorHeight - movingBox.height * scaleFactorHeight, y));
+  
+    // Adjust dimensions for overlap check
+    const newBoxPosition = { ...movingBox, x: newX, y: newY, width: movingBox.width * scaleFactorWidth, height: movingBox.height * scaleFactorHeight };
+    console.log()
+    // Check for overlaps with any other boxes
+    const overlapExists = boxes.some(otherBox => 
+      otherBox.id !== id && boxesOverlap(newBoxPosition, {
+        ...otherBox,
+        width: otherBox.width * scaleFactorWidth,
+        height: otherBox.height * scaleFactorHeight
+      })
+    );
+  
+    if (!overlapExists) {
+      setBoxes(boxes.map(box => {
+        if (box.id === id) {
+          return { ...box, x: newX, y: newY };
+        }
+        return box;
+      }));
+    } else {
+      // Provide user feedback for debugging or production
+      console.error("Overlap detected, move not allowed. Trying to move Box", id, "to", newX, newY);
+    }
+  };
+  
+  
 
   const rotateBox = (id) => {
     setBoxes(boxes.map(box => {
       if (box.id === id) {
-        return { ...box, width: box.height, height: box.width };
+        return { ...box, width: box.height, height: box.width,rotate:!box.rotate };
       }
       return box;
     }));
@@ -63,11 +89,16 @@ function App() {
     setBoxes(boxes.filter(box => box.id !== id));
   };
 
+  
+
   const submitBoxes = () => {
     console.log("Coordinates of Box Centers in meters:");
     boxes.forEach(box => {
       console.log(`Box ${box.id}: (${((box.x + box.width * scaleFactorWidth / 2) / scaleFactorWidth).toFixed(2)}, ${((box.y + box.height * scaleFactorHeight / 2) / scaleFactorHeight).toFixed(2)}) meters`);
     });
+    console.log(boxes);
+    console.log(scaleFactorHeight);
+    console.log(scaleFactorWidth);
   };
 
   const handleDimensionChange = (setter) => (e) => {

@@ -22,15 +22,6 @@ const Box = ({ id, x, y, boxWidth, boxHeight, moveBox, rotateBox, removeBox }) =
     <div ref={drag} style={{
       left: x, top: y,
       width: `${boxWidth}px`, height: `${boxHeight}px`,
-      position: 'absolute',
-      backgroundColor: '#C2A661',
-      border: '2px solid #916A2D',
-      boxShadow: '3px 3px 5px rgba(0,0,0,0.3)',
-      color: 'black',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: '0.9rem',
       cursor: 'move'
     }} className="box">
       Box {id}

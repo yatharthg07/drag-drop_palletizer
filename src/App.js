@@ -45,33 +45,64 @@ function App() {
   };
   const moveBox = (id, x, y) => {
     const movingBox = boxes.find(box => box.id === id);
-    const newX = Math.max(0, Math.min(Number(gridWidth) * scaleFactorWidth - movingBox.width * scaleFactorWidth, x));
-    const newY = Math.max(0, Math.min(Number(gridHeight) * scaleFactorHeight - movingBox.height * scaleFactorHeight, y));
+    const scaledWidth = movingBox.width * scaleFactorWidth;
+    const scaledHeight = movingBox.height * scaleFactorHeight;
+    let newX = Math.max(0, Math.min(Number(gridWidth) * scaleFactorWidth - scaledWidth, x));
+    let newY = Math.max(0, Math.min(Number(gridHeight) * scaleFactorHeight - scaledHeight, y));
   
-    // Adjust dimensions for overlap check
-    const newBoxPosition = { ...movingBox, x: newX, y: newY, width: movingBox.width * scaleFactorWidth, height: movingBox.height * scaleFactorHeight };
-    console.log()
-    // Check for overlaps with any other boxes
-    const overlapExists = boxes.some(otherBox => 
-      otherBox.id !== id && boxesOverlap(newBoxPosition, {
+    const alignmentThreshold = 15; // pixels within which boxes will snap to each other
+    let snapX = newX;
+    let snapY = newY;
+  
+    // Iterate through all boxes to find the closest edge within the threshold and check for overlap
+    boxes.forEach(otherBox => {
+      if (otherBox.id !== id) {
+        const otherX = otherBox.x;
+        const otherY = otherBox.y;
+        const otherWidth = otherBox.width * scaleFactorWidth;
+        const otherHeight = otherBox.height * scaleFactorHeight;
+  
+        // Magnetic alignment calculations
+        if (Math.abs(newX + scaledWidth - otherX) < alignmentThreshold) {
+          snapX = otherX - scaledWidth;
+        } else if (Math.abs(newX - (otherX + otherWidth)) < alignmentThreshold) {
+          snapX = otherX + otherWidth;
+        }
+  
+        if (Math.abs(newY + scaledHeight - otherY) < alignmentThreshold) {
+          snapY = otherY - scaledHeight;
+        } else if (Math.abs(newY - (otherY + otherHeight)) < alignmentThreshold) {
+          snapY = otherY + otherHeight;
+        }
+      }
+    });
+  
+    // Use the snapped coordinates if they do not cause an overlap
+    const testPosition = { ...movingBox, x: snapX, y: snapY, width: scaledWidth, height: scaledHeight };
+    const overlapExists = boxes.some(otherBox =>
+      otherBox.id !== id && boxesOverlap(testPosition, {
         ...otherBox,
+        x: otherBox.x,
+        y: otherBox.y,
         width: otherBox.width * scaleFactorWidth,
         height: otherBox.height * scaleFactorHeight
       })
     );
   
+    // Update the box position only if there is no overlap
     if (!overlapExists) {
       setBoxes(boxes.map(box => {
         if (box.id === id) {
-          return { ...box, x: newX, y: newY };
+          return { ...box, x: snapX, y: snapY };
         }
         return box;
       }));
     } else {
-      // Provide user feedback for debugging or production
       console.error("Overlap detected, move not allowed. Trying to move Box", id, "to", newX, newY);
     }
   };
+  
+  
   
   
 

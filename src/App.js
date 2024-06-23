@@ -6,21 +6,39 @@ import './App.css';
 
 function App() {
   const [boxes, setBoxes] = useState([]);
-  const [gridWidth, setGridWidth] = useState("5"); // Store as string to manage empty input
-  const [gridHeight, setGridHeight] = useState("5"); // Store as string to manage empty input
-  const [boxWidth, setBoxWidth] = useState("1"); // Store as string to manage empty input
-  const [boxLength, setBoxLength] = useState("1");  // Renamed from boxHeight
-  const [boxHeight, setBoxHeight] = useState("1");  // New parameter for box height
-  const [numLayers, setNumLayers] = useState(1);  // Store as string to manage empty input
-  const [scaleFactorWidth, setScaleFactorWidth] = useState(100); // Scale factor for width
-  const [scaleFactorLength, setScaleFactorLength] = useState(100); // Scale factor for height
+  const [gridWidth, setGridWidth] = useState("5");
+  const [gridHeight, setGridHeight] = useState("5");
+  const [boxWidth, setBoxWidth] = useState("1");
+  const [boxLength, setBoxLength] = useState("1");
+  const [boxHeight, setBoxHeight] = useState("1");
+  const [numLayers, setNumLayers] = useState(1);
+  const [scaleFactorWidth, setScaleFactorWidth] = useState(100);
+  const [scaleFactorLength, setScaleFactorLength] = useState(100);
+  const [displayWidth, setDisplayWidth] = useState(500);
+  const [displayHeight, setDisplayHeight] = useState(500);
 
   useEffect(() => {
-    const widthScale = 500 / (gridWidth * 100);
-    const heightScale = 500 / (gridHeight * 100);
+    const widthNum = Number(gridWidth);
+    const heightNum = Number(gridHeight);
+    let newDisplayWidth, newDisplayHeight;
+
+    if (widthNum >= heightNum) {
+      newDisplayWidth = 500;
+      newDisplayHeight = Math.round((heightNum / widthNum) * 500);
+    } else {
+      newDisplayHeight = 500;
+      newDisplayWidth = Math.round((widthNum / heightNum) * 500);
+    }
+
+    setDisplayWidth(newDisplayWidth);
+    setDisplayHeight(newDisplayHeight);
+
+    const widthScale = newDisplayWidth / (widthNum * 100);
+    const heightScale = newDisplayHeight / (heightNum * 100);
     setScaleFactorWidth(widthScale * 100);
     setScaleFactorLength(heightScale * 100);
   }, [gridWidth, gridHeight]);
+
 
   useEffect(() => {
     // Update all boxes with the new dimensions
@@ -185,8 +203,8 @@ function App() {
           boxes={boxes}
           scaleFactorLength={scaleFactorLength}
           scaleFactorWidth={scaleFactorWidth}
-          gridWidth={500}
-          gridHeight={500}
+          gridWidth={displayWidth}
+          gridHeight={displayHeight}
           moveBox={moveBox}
           rotateBox={rotateBox}
           removeBox={removeBox}

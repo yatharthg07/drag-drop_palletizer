@@ -1,7 +1,7 @@
 import React from 'react';
 import Box from './Box';
 
-const BoxGrid = ({ boxes, moveBox, rotateBox, removeBox, gridWidth, gridHeight, scaleFactorWidth, scaleFactorHeight }) => {
+const BoxGrid = ({ boxes, moveBox, rotateBox, removeBox, gridWidth, gridHeight, scaleFactorWidth, scaleFactorLength }) => {
   return (
     <div className="grid" style={{ width: `${gridWidth}px`, height: `${gridHeight}px` }}>
       {boxes.map(box => (
@@ -11,7 +11,7 @@ const BoxGrid = ({ boxes, moveBox, rotateBox, removeBox, gridWidth, gridHeight, 
           x={box.x}
           y={box.y}
           boxWidth={box.width * scaleFactorWidth}
-          boxHeight={box.height * scaleFactorHeight}
+          boxLength={box.length * scaleFactorLength}
           moveBox={moveBox}
           rotateBox={rotateBox}
           removeBox={removeBox}

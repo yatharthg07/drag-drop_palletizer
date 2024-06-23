@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
 
-const Box = ({ id, x, y, boxWidth, boxHeight, moveBox, rotateBox, removeBox }) => {
+const Box = ({ id, x, y, boxWidth, boxLength, moveBox, rotateBox, removeBox }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'box',
     item: { id, x, y },
@@ -21,7 +21,7 @@ const Box = ({ id, x, y, boxWidth, boxHeight, moveBox, rotateBox, removeBox }) =
   return (
     <div ref={drag} style={{
       left: x, top: y,
-      width: `${boxWidth}px`, height: `${boxHeight}px`,
+      width: `${boxWidth}px`, height: `${boxLength}px`,
       cursor: 'move'
     }} className="box">
       Box {id}

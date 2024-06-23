@@ -9,15 +9,17 @@ function App() {
   const [gridWidth, setGridWidth] = useState("5"); // Store as string to manage empty input
   const [gridHeight, setGridHeight] = useState("5"); // Store as string to manage empty input
   const [boxWidth, setBoxWidth] = useState("1"); // Store as string to manage empty input
-  const [boxHeight, setBoxHeight] = useState("1"); // Store as string to manage empty input
+  const [boxLength, setBoxLength] = useState("1");  // Renamed from boxHeight
+  const [boxHeight, setBoxHeight] = useState("1");  // New parameter for box height
+  const [numLayers, setNumLayers] = useState(1);  // Store as string to manage empty input
   const [scaleFactorWidth, setScaleFactorWidth] = useState(100); // Scale factor for width
-  const [scaleFactorHeight, setScaleFactorHeight] = useState(100); // Scale factor for height
+  const [scaleFactorLength, setScaleFactorLength] = useState(100); // Scale factor for height
 
   useEffect(() => {
     const widthScale = 500 / (gridWidth * 100);
     const heightScale = 500 / (gridHeight * 100);
     setScaleFactorWidth(widthScale * 100);
-    setScaleFactorHeight(heightScale * 100);
+    setScaleFactorLength(heightScale * 100);
   }, [gridWidth, gridHeight]);
 
   useEffect(() => {
@@ -25,30 +27,40 @@ function App() {
     const updatedBoxes = boxes.map(box => ({
       ...box,
       width: Number(boxWidth),
-      height: Number(boxHeight)
+      height: Number(boxHeight),
+      length: Number(boxLength),
     }));
     setBoxes(updatedBoxes);
-  }, [boxWidth, boxHeight]);
+  }, [boxWidth, boxHeight,boxLength]);
 
   const addBox = () => {
-    const newBox = { id: boxes.length, x: 10, y: 10, width: Number(boxWidth), height: Number(boxHeight),rotate:false };
+    const newBox = {
+      id: boxes.length,
+      x: 10,
+      y: 10,
+      width: Number(boxWidth),
+      length: Number(boxLength),  // Changed to boxLength
+      height: Number(boxHeight),
+      layer: 1  // Default to layer 1
+    };
     setBoxes([...boxes, newBox]);
   };
 
+  
   const boxesOverlap = (box1, box2) => {
     return (
       box1.x < box2.x + box2.width &&
       box1.x + box1.width > box2.x &&
-      box1.y < box2.y + box2.height &&
-      box1.y + box1.height > box2.y
+      box1.y < box2.y + box2.length &&
+      box1.y + box1.length > box2.y
     );
   };
   const moveBox = (id, x, y) => {
     const movingBox = boxes.find(box => box.id === id);
     const scaledWidth = movingBox.width * scaleFactorWidth;
-    const scaledHeight = movingBox.height * scaleFactorHeight;
+    const scaledLength = movingBox.length * scaleFactorLength;
     let newX = Math.max(0, Math.min(Number(gridWidth) * scaleFactorWidth - scaledWidth, x));
-    let newY = Math.max(0, Math.min(Number(gridHeight) * scaleFactorHeight - scaledHeight, y));
+    let newY = Math.max(0, Math.min(Number(gridHeight) * scaleFactorLength - scaledLength, y));
   
     const alignmentThreshold = 15; // pixels within which boxes will snap to each other
     let snapX = newX;
@@ -60,7 +72,7 @@ function App() {
         const otherX = otherBox.x;
         const otherY = otherBox.y;
         const otherWidth = otherBox.width * scaleFactorWidth;
-        const otherHeight = otherBox.height * scaleFactorHeight;
+        const otherLength  = otherBox.length * scaleFactorLength;
   
         // Magnetic alignment calculations
         if (Math.abs(newX + scaledWidth - otherX) < alignmentThreshold) {
@@ -69,23 +81,23 @@ function App() {
           snapX = otherX + otherWidth;
         }
   
-        if (Math.abs(newY + scaledHeight - otherY) < alignmentThreshold) {
-          snapY = otherY - scaledHeight;
-        } else if (Math.abs(newY - (otherY + otherHeight)) < alignmentThreshold) {
-          snapY = otherY + otherHeight;
+        if (Math.abs(newY + scaledLength - otherY) < alignmentThreshold) {
+          snapY = otherY - scaledLength;
+        } else if (Math.abs(newY - (otherY + otherLength)) < alignmentThreshold) {
+          snapY = otherY + otherLength;
         }
       }
     });
   
     // Use the snapped coordinates if they do not cause an overlap
-    const testPosition = { ...movingBox, x: snapX, y: snapY, width: scaledWidth, height: scaledHeight };
+    const testPosition = { ...movingBox, x: snapX, y: snapY, width: scaledWidth, length: scaledLength };
     const overlapExists = boxes.some(otherBox =>
       otherBox.id !== id && boxesOverlap(testPosition, {
         ...otherBox,
         x: otherBox.x,
         y: otherBox.y,
         width: otherBox.width * scaleFactorWidth,
-        height: otherBox.height * scaleFactorHeight
+        length: otherBox.length * scaleFactorLength
       })
     );
   
@@ -109,7 +121,7 @@ function App() {
   const rotateBox = (id) => {
     setBoxes(boxes.map(box => {
       if (box.id === id) {
-        return { ...box, width: box.height, height: box.width,rotate:!box.rotate };
+        return { ...box, width: box.length, length: box.width,rotate:!box.rotate };
       }
       return box;
     }));
@@ -123,14 +135,15 @@ function App() {
   
 
   const submitBoxes = () => {
-    console.log("Coordinates of Box Centers in meters:");
+    console.log("Coordinates of Box Centers:");
     boxes.forEach(box => {
-      console.log(`Box ${box.id}: (${((box.x + box.width * scaleFactorWidth / 2) / scaleFactorWidth).toFixed(2)}, ${((box.y + box.height * scaleFactorHeight / 2) / scaleFactorHeight).toFixed(2)}) meters`);
+        for (let layer = 1; layer <= numLayers; layer++) {
+            const z = box.height* (layer - 0.5);  // Calculate center Z for each layer
+            console.log(`Box ${box.id} on Layer ${layer}: (${(box.x + box.width / 2).toFixed(2)}, ${(box.y + box.length / 2).toFixed(2)}, ${z.toFixed(2)}) meters`);
+        }
     });
-    console.log(boxes);
-    console.log(scaleFactorHeight);
-    console.log(scaleFactorWidth);
-  };
+};
+
 
   const handleDimensionChange = (setter) => (e) => {
     const value = e.target.value.replace(/^0+/, '') || ''; // Allows empty string
@@ -157,12 +170,20 @@ function App() {
             Box Height (m):
             <input type="number" value={boxHeight} onChange={handleDimensionChange(setBoxHeight)} />
           </label>
+          <label>
+    Box length (m):
+    <input type="number" value={boxLength} onChange={handleDimensionChange(setBoxLength)}/>
+    </label>
+  <label>
+    Number of Layers:
+    <input type="number" value={numLayers} onChange={e => setNumLayers(e.target.value)} />
+  </label>
           <button onClick={addBox}>Add Box</button>
           <button onClick={submitBoxes}>Submit</button>
         </div>
         <BoxGrid
           boxes={boxes}
-          scaleFactorHeight={scaleFactorHeight}
+          scaleFactorLength={scaleFactorLength}
           scaleFactorWidth={scaleFactorWidth}
           gridWidth={500}
           gridHeight={500}
